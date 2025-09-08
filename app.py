@@ -5,7 +5,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="PetScreening Revenue Simulator", layout="wide")
+st.set_page_config(page_title="PetScreening Revenue Simulator", layout="wide", initial_sidebar_state="collapsed")
 
 
 # ---------- Sidebar inputs
