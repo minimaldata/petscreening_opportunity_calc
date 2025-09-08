@@ -207,7 +207,7 @@ with col1:
 
 # Right column: Graph controls and graph
 with col2:
-    col2a, col2b = st.columns([1, 4])
+    col2a, col2b = st.columns([2, 3])
     with col2a:
         show_visual = st.checkbox("Show Opportunity (A vs B)", value=False, key="visual_checkbox")
     
@@ -479,4 +479,4 @@ with col2:
         st.plotly_chart(fig, width=True)
         
         # Add a caption
-        st.caption(f"**{y_label}** - {data_type.replace('_', ' ').title()}")
+        # st.caption(f"**{y_label}** - {data_type.replace('_', ' ').title()}")
