@@ -209,20 +209,10 @@ with col1:
 
 # Right column: Graph controls and graph
 with col2:
-    st.subheader("Visual Analysis")
+    col2a, col2b = st.columns([1, 4])
+    with col2a:
+        show_visual = st.checkbox("Show Opportunity", value=False, key="visual_checkbox")
     
-    # Graph controls
-    data_type = st.selectbox(
-        "What to display:",
-        ["pets", "pet rent revenue", "pet deposit revenue", "total revenue"],
-        index=3,
-        key="data_type_selectbox"
-    )
-    
-    show_cumulative = st.checkbox("Show Cumulative", value=True, key="cumulative_checkbox")
-    
-    # Graph will be created and displayed here after calculations
-
 # ---------- Core calculations
 def month_series(start_date: dt.date, months: int) -> pd.DatetimeIndex:
     return pd.date_range(start=start_date, periods=months, freq="MS")
@@ -292,9 +282,65 @@ monthly_rev_B = rent_B + dep_B
 cum_rev_A = cumulative(monthly_rev_A)
 cum_rev_B = cumulative(monthly_rev_B)
 
+# Calculate and display month 24 difference for the selected data type (always cumulative)
+if show_visual:
+    # First, we need to define data_type for the calculation
+    # We'll use a default value and then update it with the actual selection
+    data_type = "total revenue"  # Default value
+    
+    # Calculate incremental value based on selected data type
+    if data_type == "pets":
+        month24_diff = cumulative(pd.Series(new_A))[23] - cumulative(pd.Series(new_B))[23]
+        diff_label = "Cumulative Pet Profiles"
+    elif data_type == "pet rent revenue":
+        month24_diff = cumulative(rent_A)[23] - cumulative(rent_B)[23]
+        diff_label = "Cumulative Pet Rent Revenue"
+    elif data_type == "pet deposit revenue":
+        month24_diff = cumulative(dep_A)[23] - cumulative(dep_B)[23]
+        diff_label = "Cumulative Pet Deposit Revenue"
+    elif data_type == "total revenue":
+        month24_diff = cum_rev_A[23] - cum_rev_B[23]
+        diff_label = "Cumulative Total Revenue"
+    
+    # Format the difference for display
+    def format_difference(num, is_revenue=False):
+        if abs(num) < 1000:
+            formatted = f"{int(num):,}"
+        elif abs(num) < 1_000_000:
+            formatted = f"{num/1000:.2f}K"
+        elif abs(num) < 1_000_000_000:
+            formatted = f"{num/1_000_000:.2f}M"
+        elif abs(num) < 1_000_000_000_000:
+            formatted = f"{num/1_000_000_000:.2f}B"
+        else:
+            formatted = f"{num/1_000_000_000_000:.2f}T"
+        
+        return f"${formatted}" if is_revenue else formatted
+    
+    # Determine if this is a revenue metric
+    is_revenue = data_type in ["pet rent revenue", "pet deposit revenue", "total revenue"]
+    formatted_diff = format_difference(month24_diff, is_revenue)
+    
+    # Display the subheader in the right column
+    with col2:
+        st.header(f"***{formatted_diff} ({diff_label})***")
+        
+        # Graph controls (positioned underneath the incremental value)
+        col_controls1, col_controls2 = st.columns([1, 1])
+        
+        with col_controls1:
+            data_type = st.selectbox(
+                "What to display:",
+                ["pets", "pet rent revenue", "pet deposit revenue", "total revenue"],
+                index=3,
+                key="data_type_selectbox"
+            )
+        
+        with col_controls2:
+            show_cumulative = st.checkbox("Show Cumulative", value=True, key="cumulative_checkbox")
+
 # ---------- Output table
 st.write("---")
-st.subheader("Full Table")
 
 # Toggle to show/hide detailed table
 show_table = st.checkbox("Show Full Table", value=False)
@@ -326,112 +372,113 @@ if show_table:
 
 # Prepare data based on selections and create graph in right column
 with col2:
-    if data_type == "pets":
-        if show_cumulative:
-            y_A = cumulative(pd.Series(new_A))
-            y_B = cumulative(pd.Series(new_B))
-            y_label = "Cumulative Pet Profiles"
-        else:
-            y_A = new_A
-            y_B = new_B
-            y_label = "New Pet Profiles per Month"
-    elif data_type == "pet rent revenue":
-        if show_cumulative:
-            y_A = cumulative(rent_A)
-            y_B = cumulative(rent_B)
-            y_label = "Cumulative Pet Rent Revenue ($)"
-        else:
-            y_A = rent_A
-            y_B = rent_B
-            y_label = "Monthly Pet Rent Revenue ($)"
-    elif data_type == "pet deposit revenue":
-        if show_cumulative:
-            y_A = cumulative(dep_A)
-            y_B = cumulative(dep_B)
-            y_label = "Cumulative Pet Deposit Revenue ($)"
-        else:
-            y_A = dep_A
-            y_B = dep_B
-            y_label = "Monthly Pet Deposit Revenue ($)"
-    elif data_type == "total revenue":
-        if show_cumulative:
-            y_A = cum_rev_A
-            y_B = cum_rev_B
-            y_label = "Cumulative Total Revenue ($)"
-        else:
-            y_A = monthly_rev_A
-            y_B = monthly_rev_B
-            y_label = "Monthly Total Revenue ($)"
+    if show_visual:
+        if data_type == "pets":
+            if show_cumulative:
+                y_A = cumulative(pd.Series(new_A))
+                y_B = cumulative(pd.Series(new_B))
+                y_label = "Cumulative Pet Profiles"
+            else:
+                y_A = new_A
+                y_B = new_B
+                y_label = "New Pet Profiles per Month"
+        elif data_type == "pet rent revenue":
+            if show_cumulative:
+                y_A = cumulative(rent_A)
+                y_B = cumulative(rent_B)
+                y_label = "Cumulative Pet Rent Revenue ($)"
+            else:
+                y_A = rent_A
+                y_B = rent_B
+                y_label = "Monthly Pet Rent Revenue ($)"
+        elif data_type == "pet deposit revenue":
+            if show_cumulative:
+                y_A = cumulative(dep_A)
+                y_B = cumulative(dep_B)
+                y_label = "Cumulative Pet Deposit Revenue ($)"
+            else:
+                y_A = dep_A
+                y_B = dep_B
+                y_label = "Monthly Pet Deposit Revenue ($)"
+        elif data_type == "total revenue":
+            if show_cumulative:
+                y_A = cum_rev_A
+                y_B = cum_rev_B
+                y_label = "Cumulative Total Revenue ($)"
+            else:
+                y_A = monthly_rev_A
+                y_B = monthly_rev_B
+                y_label = "Monthly Total Revenue ($)"
 
-    # Create the graph data
-    graph_data = pd.DataFrame({
-        "Month": dates,  # Use actual dates instead of formatted strings
-        "Scenario A": y_A,
-        "Scenario B": y_B
-    })
+        # Create the graph data
+        graph_data = pd.DataFrame({
+            "Month": dates,  # Use actual dates instead of formatted strings
+            "Scenario A": y_A,
+            "Scenario B": y_B
+        })
 
-    # Create Plotly line chart
-    fig = go.Figure()
+        # Create Plotly line chart
+        fig = go.Figure()
 
-    # Calculate difference for hover text
-    difference = graph_data["Scenario A"] - graph_data["Scenario B"]
+        # Calculate difference for hover text
+        difference = graph_data["Scenario A"] - graph_data["Scenario B"]
     
-    # Format numbers for tooltip
-    def format_number(num):
-        if abs(num) < 1000:
-            return f"{int(num):,}"
-        elif abs(num) < 1_000_000:
-            return f"{num/1000:.2f}K"
-        elif abs(num) < 1_000_000_000:
-            return f"{num/1_000_000:.2f}M"
-        elif abs(num) < 1_000_000_000_000:
-            return f"{num/1_000_000_000:.2f}B"
-        else:
-            return f"{num/1_000_000_000_000:.2f}T"
+        # Format numbers for tooltip
+        def format_number(num):
+            if abs(num) < 1000:
+                return f"{int(num):,}"
+            elif abs(num) < 1_000_000:
+                return f"{num/1000:.2f}K"
+            elif abs(num) < 1_000_000_000:
+                return f"{num/1_000_000:.2f}M"
+            elif abs(num) < 1_000_000_000_000:
+                return f"{num/1_000_000_000:.2f}B"
+            else:
+                return f"{num/1_000_000_000_000:.2f}T"
+        
+        # Format the data for tooltips
+        formatted_a = [format_number(x) for x in graph_data["Scenario A"]]
+        formatted_b = [format_number(x) for x in graph_data["Scenario B"]]
+        formatted_diff = [format_number(x) for x in difference]
     
-    # Format the data for tooltips
-    formatted_a = [format_number(x) for x in graph_data["Scenario A"]]
-    formatted_b = [format_number(x) for x in graph_data["Scenario B"]]
-    formatted_diff = [format_number(x) for x in difference]
-    
-    # Add Scenario A line
-    fig.add_trace(go.Scatter(
-        x=graph_data["Month"],
-        y=graph_data["Scenario A"],
-        mode='lines+markers',
-        name='Scenario A',
-        hovertemplate='<b>Scenario A:</b> %{customdata[0]}<br><i>diff: %{customdata[2]}</i><br><extra></extra>',
-        customdata=list(zip(formatted_a, formatted_b, formatted_diff))
-    ))
+        # Add Scenario A line
+        fig.add_trace(go.Scatter(
+            x=graph_data["Month"],
+            y=graph_data["Scenario A"],
+            mode='lines+markers',
+            name='Scenario A',
+            hovertemplate='<b>Scenario A:</b> %{customdata[0]}<br><i>diff: %{customdata[2]}</i><br><extra></extra>',
+            customdata=list(zip(formatted_a, formatted_b, formatted_diff))
+        ))
 
-    # Add Scenario B line
-    fig.add_trace(go.Scatter(
-        x=graph_data["Month"],
-        y=graph_data["Scenario B"],
-        mode='lines+markers',
-        name='Scenario B',
-        hovertemplate='<b>Scenario B:</b> %{customdata[1]}<br><extra></extra>',
-        customdata=list(zip(formatted_a, formatted_b, formatted_diff))
-    ))
+        # Add Scenario B line
+        fig.add_trace(go.Scatter(
+            x=graph_data["Month"],
+            y=graph_data["Scenario B"],
+            mode='lines+markers',
+            name='Scenario B',
+            hovertemplate='<b>Scenario B:</b> %{customdata[1]}<br><extra></extra>',
+            customdata=list(zip(formatted_a, formatted_b, formatted_diff))
+        ))
 
-    # Update layout
-    fig.update_layout(
-        title=f"{y_label}",
-        xaxis_title="Month",
-        yaxis_title=y_label,
-        hovermode='x unified',
-        height=500,
-        xaxis=dict(showgrid=False, showline=True, linecolor='black'),
-        yaxis=dict(showgrid=False, showline=True, linecolor='black'),
-        hoverlabel=dict(
-            bgcolor="white",
-            font_size=12,
-            font_family="Arial"
+        # Update layout
+        fig.update_layout(
+            title=f"{y_label}",
+            xaxis_title="Month",
+            yaxis_title=y_label,
+            hovermode='x unified',
+            height=500,
+            xaxis=dict(showgrid=False, showline=True, linecolor='black'),
+            yaxis=dict(showgrid=False, showline=True, linecolor='black'),
+            hoverlabel=dict(
+                bgcolor="white",
+                font_size=12,
+                font_family="Arial"
+            )
         )
-    )
 
-    # Display the chart
-    st.plotly_chart(fig, width=True)
-    
-    # Add a caption
-    st.caption(f"**{y_label}** - {data_type.replace('_', ' ').title()}")
+        # Display the chart
+        st.plotly_chart(fig, width=True)
+        
+        # Add a caption
+        st.caption(f"**{y_label}** - {data_type.replace('_', ' ').title()}")
