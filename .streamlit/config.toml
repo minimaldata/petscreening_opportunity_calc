@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+[theme]
+base = "light"
+primaryColor = "#4fd4c0"            # teal accent (buttons, highlights)
+backgroundColor = "#eafaf8"         # off-white / cream main background
+secondaryBackgroundColor = "#4fd4c0"  # light teal panels
+textColor = "#3e3e3e"               # dark grey for readability
+font = "sans serif"
