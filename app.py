@@ -121,14 +121,12 @@ def format_month_year(date):
 
 # ---------- Main page inputs
 st.title("PetScreening Revenue Simulator")
-st.caption("Compare revenue impact of different rollout scenarios")
 
 # Top section: 2x2 grid layout
 col1, col2 = st.columns(2)
 
 # Left column: Project Setup and Ramp Schedule
 with col1:
-    st.subheader("Project Setup")
     
     # Month/Year selector
     month_options = get_month_year_options()
@@ -211,7 +209,7 @@ with col1:
 with col2:
     col2a, col2b = st.columns([1, 4])
     with col2a:
-        show_visual = st.checkbox("Show Opportunity", value=False, key="visual_checkbox")
+        show_visual = st.checkbox("Show Opportunity (A vs B)", value=False, key="visual_checkbox")
     
 # ---------- Core calculations
 def month_series(start_date: dt.date, months: int) -> pd.DatetimeIndex:
@@ -330,14 +328,14 @@ if show_visual:
         
         with col_controls1:
             data_type = st.selectbox(
-                "What to display:",
+                "Metric:",
                 ["pets", "pet rent revenue", "pet deposit revenue", "total revenue"],
                 index=3,
                 key="data_type_selectbox"
             )
         
         with col_controls2:
-            show_cumulative = st.checkbox("Show Cumulative", value=True, key="cumulative_checkbox")
+            show_cumulative = st.checkbox("Cumulative", value=True, key="cumulative_checkbox")
 
 # ---------- Output table
 st.write("---")
