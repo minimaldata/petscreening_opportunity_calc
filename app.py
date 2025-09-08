@@ -200,7 +200,7 @@ with col1:
             "Scenario B (%)": st.column_config.NumberColumn("Scenario B (%)", min_value=0, max_value=100, step=5)
         },
         hide_index=True,
-        use_container_width=True,
+        width=True,
         key="ramp_table"
     )
     
@@ -321,7 +321,7 @@ df = pd.DataFrame({
 
 # Display the table only if checkbox is checked
 if show_table:
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df,width=True, hide_index=True)
 
 # ---------- Core calculations
 
@@ -432,7 +432,7 @@ with col2:
     )
 
     # Display the chart
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width=True)
     
     # Add a caption
     st.caption(f"**{y_label}** - {data_type.replace('_', ' ').title()}")
