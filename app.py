@@ -43,7 +43,7 @@ monthly_rent = st.sidebar.number_input(
 )
 
 deposit_amount = st.sidebar.number_input(
-    "Pet Deposit ($)", 
+    "Pet Fee ($)", 
     min_value=0.0, 
     max_value=5000.0, 
     value=250.0, 
